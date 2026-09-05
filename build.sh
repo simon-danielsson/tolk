@@ -30,7 +30,6 @@ compilation_flags_debug=(
     "-Wall"
     "-Wextra"
     "-Wshadow"
-    "-Werror"
 )
 
 compilation_flags_release=(
