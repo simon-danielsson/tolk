@@ -1,0 +1,15 @@
+CompileFlags:
+  Add:
+    - -xc
+    - -DTEST
+    - -std=c99
+    - -Wextra
+    - -pedantic
+    - -Wsign-conversion
+    - -Wno-unused-variable
+    - -Wno-unused-but-set-variable
+    - -Wno-unused-function
+
+Documentation:
+  CommentFormat: Markdown
+
