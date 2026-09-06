@@ -33,48 +33,22 @@ char *get_current_dir(void) {
 #define COL_GREEN "\033[38;5;35m"
 #define COL_RESET "\033[0m"
 
-int run_cmd(const char *cmd, char *sout) {
-
-    FILE *fp = popen(cmd, "r");
-    if (fp == NULL) {
-        perror("popen");
-        return 1;
-    }
-
-    if (sout) {
-        char buffer[512];
-        while (fgets(buffer, sizeof(buffer), fp) != NULL)
-            strcat(sout, buffer);
-    }
-
-    int status = pclose(fp);
-
-    if (status == -1) {
-        perror("pclose");
-        return 1;
-    }
-
-    if (WIFEXITED(status))
-        return WEXITSTATUS(status);
-    else
-        return 1;
-}
-
 bool dir_is_git_repo(void) {
-    if (run_cmd("git rev-parse --is-inside-work-tree >/dev/null 2>&1", NULL) != 0)
+    if (SDC_io_cmd("git rev-parse --is-inside-work-tree >/dev/null 2>&1", NULL) !=
+            0)
         return false;
     return true;
 }
 
 bool is_dirty_git_repo(void) {
-    if (run_cmd("git status --porcelain 2>/dev/null | grep -q .", NULL) == 0)
+    if (SDC_io_cmd("git status --porcelain 2>/dev/null | grep -q .", NULL) == 0)
         return true;
     return false;
 }
 
 char *get_git_branch(void) {
     char buf[128] = {0};
-    if (run_cmd("git rev-parse --abbrev-ref HEAD", buf) == 0) {
+    if (SDC_io_cmd("git rev-parse --abbrev-ref HEAD", buf) == 0) {
         SDC_str_trim(buf);
         return SDC_str_dup(buf);
     }
@@ -113,8 +87,8 @@ int main(void) {
 
 #undef branch
 
-    printf(" ");
-    // printf(" → ");
+    // printf(" ");
+    printf(" → ");
 
     return 0;
 }
