@@ -28,13 +28,12 @@ char *get_current_dir(void) {
     }
 }
 
-#define COL_GRAY "\033[38;5;240m"
+#define COL_GRAY "\033[38;5;241m"
 #define COL_ORANGE "\033[38;5;130m"
 #define COL_GREEN "\033[38;5;35m"
 #define COL_RESET "\033[0m"
 
-int run_cmd(const char *cmd) {
-    // char buffer[512];
+int run_cmd(const char *cmd, char *sout) {
 
     FILE *fp = popen(cmd, "r");
     if (fp == NULL) {
@@ -42,10 +41,11 @@ int run_cmd(const char *cmd) {
         return 1;
     }
 
-    // char tmp[512];
-    //
-    // while (fgets(buffer, sizeof(buffer), fp) != NULL)
-    //     strcat(tmp, buffer);
+    if (sout) {
+        char buffer[512];
+        while (fgets(buffer, sizeof(buffer), fp) != NULL)
+            strcat(sout, buffer);
+    }
 
     int status = pclose(fp);
 
@@ -58,20 +58,27 @@ int run_cmd(const char *cmd) {
         return WEXITSTATUS(status);
     else
         return 1;
-
-    // return SDC_str_dup(tmp);
 }
 
 bool dir_is_git_repo(void) {
-    if (run_cmd("git rev-parse --is-inside-work-tree >/dev/null 2>&1") != 0)
+    if (run_cmd("git rev-parse --is-inside-work-tree >/dev/null 2>&1", NULL) != 0)
         return false;
     return true;
 }
 
 bool is_dirty_git_repo(void) {
-    if (run_cmd("git status --porcelain 2>/dev/null | grep -q .") == 0)
+    if (run_cmd("git status --porcelain 2>/dev/null | grep -q .", NULL) == 0)
         return true;
     return false;
+}
+
+char *get_git_branch(void) {
+    char buf[128] = {0};
+    if (run_cmd("git rev-parse --abbrev-ref HEAD", buf) == 0) {
+        SDC_str_trim(buf);
+        return SDC_str_dup(buf);
+    }
+    return NULL;
 }
 
 int main(void) {
@@ -84,18 +91,30 @@ int main(void) {
     free(dir);
     printf("%s", COL_RESET);
 
+#define branch                                                                 \
+    printf("%s", COL_GRAY);                                                      \
+    char *branch = get_git_branch();                                             \
+    printf(" (%s)", branch);                                                     \
+    free(branch);                                                                \
+    printf("%s", COL_RESET);
+
     if (dir_is_git_repo() && is_dirty_git_repo()) {
+        // branch;
         printf("%s", COL_ORANGE);
         printf(" •");
         printf("%s", COL_RESET);
 
     } else if (dir_is_git_repo()) {
+        // branch;
         printf("%s", COL_GREEN);
         printf(" •");
         printf("%s", COL_RESET);
     }
 
-    printf(" → ");
+#undef branch
+
+    printf(" ");
+    // printf(" → ");
 
     return 0;
 }
