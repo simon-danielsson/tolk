@@ -1,7 +1,8 @@
 #include "main.h"
-#include "ext/ext.h"
-#include <_abort.h>
-#include <libc.h>
+#define SDC_IMPLEMENTATION
+#define INILITE_IMPLEMENTATION
+#include "external/inilite.h"
+#include "external/sdc.h"
 #include <pwd.h>
 
 #define config_filename ".tolk.ini"
