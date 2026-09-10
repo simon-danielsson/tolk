@@ -166,6 +166,19 @@ void config_get_icon(char **icon_buf, IniSection *config, IniSection *fallback,
                 key);
 }
 
+void config_get_setting(bool *setting, IniSection *config, IniSection *fallback,
+        const char *key) {
+    char *value;
+    if (!(value = IniSection_get_value(config, key)))
+        value = IniSection_get_value(fallback, key);
+    if (!value)
+        fprintf(stderr, "Error(~/%s): failed to parse field '%s'", config_filename,
+                key);
+    *setting = false;
+    if (strstr(value, "y") != 0)
+        *setting = true;
+}
+
 int main(void) {
     Ini config = {0};
     Ini config_fallback = {0};
@@ -192,7 +205,17 @@ int main(void) {
         config_get_icon(&icon_prompt, icons, icons_fallback, "prompt");
     }
 
-    printf("\n");
+    bool settings_newline;
+    {
+        IniSection *settings = Ini_get_section(&config, "settings");
+        IniSection *settings_fallback =
+            Ini_get_section(&config_fallback, "settings");
+        config_get_setting(&settings_newline, settings, settings_fallback,
+                "newline");
+    }
+
+    if (settings_newline)
+        printf("\n");
 
     ColorRGB_print(&rgb_curr_dir);
     char *dir = get_path_current();
